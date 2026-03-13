@@ -1,0 +1,83 @@
+/**
+ * Backend API helper for the admin frontend.
+ * All requests go through Next.js rewrites → http://localhost:4000/api/*
+ */
+
+const BASE = '/api';
+
+interface ApiResponse<T = unknown> {
+    success: boolean;
+    message: string;
+    data?: T;
+    error?: string;
+}
+
+async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    const res = await fetch(`${BASE}${path}`, {
+        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        ...options,
+    });
+    const json = await res.json();
+    if (!res.ok) {
+        throw new Error(json.message || json.error || 'Request failed');
+    }
+    return json;
+}
+
+export const api = {
+    // ── Auth ──
+    login: (email: string) =>
+        request<{ email: string; id: string }>('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        }),
+
+    // ── Dashboard ──
+    dashboardStats: () => request<{
+        totalOrders: number;
+        totalRevenue: number;
+        activeApis: number;
+        telegramBots: number;
+        recentOrders: unknown[];
+    }>('/dashboard/stats'),
+
+    // ── Orders ──
+    getOrders: (page = 1, limit = 20, status?: string) => {
+        const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+        if (status) params.set('status', status);
+        return request<{
+            orders: unknown[];
+            pagination: { total: number; page: number; limit: number; totalPages: number };
+        }>(`/orders?${params}`);
+    },
+
+    getOrder: (id: string) => request(`/orders/${id}`),
+
+    createOrder: (data: { serviceId: number; link: string; quantity: number; amount: number; remark?: string }) =>
+        request('/orders', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // ── Spends ──
+    getSpends: (date?: string) => {
+        const params = date ? `?date=${date}` : '';
+        return request<unknown[]>(`/spends${params}`);
+    },
+
+    createSpend: (data: { category: string; amount: number; note?: string; date: string }) =>
+        request('/spends', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // ── Banners ──
+    getBanners: () => request<unknown[]>('/banners'),
+    createBanner: (data: unknown) => request('/banners', { method: 'POST', body: JSON.stringify(data) }),
+    updateBanner: (id: string, data: unknown) => request(`/banners/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteBanner: (id: string) => request(`/banners/${id}`, { method: 'DELETE' }),
+
+    // ── SSM ──
+    ssmServices: (panel?: string) => request<unknown[]>(`/ssm/services?panel=${panel || 'SUPPORTIVE_SMM'}`),
+    ssmBalance: (panel?: string) => request(`/ssm/balance?panel=${panel || 'SUPPORTIVE_SMM'}`),
+};
