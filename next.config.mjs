@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-import { BACKEND_URL } from "./lib/constants";
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
@@ -11,7 +10,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${BACKEND_URL}/api/:path*`,
+        destination: `${process.env.BACKEND_URL || "http://localhost:4000"}/api/:path*`,
       },
     ]
   },
