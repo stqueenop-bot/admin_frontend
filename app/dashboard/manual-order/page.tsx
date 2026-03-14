@@ -10,33 +10,45 @@ import { Spinner } from '@/components/ui/spinner'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
-interface OrderFormData {
-  serviceId: string
-  link: string
+interface ServiceOption {
+  id: string
+  name: string
+  panel: string
+  presets: number[]
 }
+
+const SERVICES: ServiceOption[] = [
+  { id: '602', name: 'Reel Views', panel: 'Supportive SMM', presets: [5000, 10000, 25000] },
+  { id: '3924', name: 'Likes', panel: 'IND SMM', presets: [1000] },
+  { id: '670', name: 'Comments', panel: 'Supportive SMM', presets: [100] },
+  { id: '3822', name: 'Followers', panel: 'IND SMM', presets: [50, 100, 200] },
+]
 
 export default function ManualOrderPage() {
   const queryClient = useQueryClient()
-  const [formData, setFormData] = useState<OrderFormData>({
-    serviceId: '602', // Default to Reel Views
+  const [formData, setFormData] = useState({
+    serviceId: SERVICES[0].id,
     link: '',
+    quantity: SERVICES[0].presets[0].toString(),
   })
 
+  const selectedService = SERVICES.find(s => s.id === formData.serviceId) || SERVICES[0]
+
   const createOrderMutation = useMutation({
-    mutationFn: async (data: OrderFormData) => {
+    mutationFn: async (data: typeof formData) => {
       return api.createOrder({
         serviceId: parseInt(data.serviceId),
         link: data.link,
-        quantity: 1000, // Default for manual order panel
+        quantity: parseInt(data.quantity),
         amount: 0,
-        remark: `[Manual Order][Admin] Service: ${data.serviceId}`,
+        remark: `[Manual Order][Admin] Service: ${data.serviceId} (${selectedService.name})`,
       })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       toast.success('Order created successfully!')
-      setFormData({ serviceId: '602', link: '' })
+      setFormData(prev => ({ ...prev, link: '' }))
     },
     onError: (err: any) => {
       toast.error(err.message || 'Failed to create order. Please try again.')
@@ -45,18 +57,41 @@ export default function ManualOrderPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.link) {
+      toast.error('Please enter a link')
+      return
+    }
+    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
+      toast.error('Please enter a valid quantity')
+      return
+    }
     createOrderMutation.mutate(formData)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value }
+      // If service changed, reset quantity to its first preset
+      if (name === 'serviceId') {
+        const newService = SERVICES.find(s => s.id === value)
+        if (newService) {
+          newData.quantity = newService.presets[0].toString()
+        }
+      }
+      return newData
+    })
+  }
+
+  const handlePresetClick = (qty: number) => {
+    setFormData(prev => ({ ...prev, quantity: qty.toString() }))
   }
 
   return (
     <div className="space-y-6 lg:space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Manual Order</h1>
-        <p className="text-gray-500 mt-1">Place a new Instagram SMM order manually</p>
+        <p className="text-gray-500 mt-1">Place a new SMM order from the admin panel</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -73,48 +108,78 @@ export default function ManualOrderPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2 md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                     <Hash className="w-4 h-4 text-purple-500" />
-                    Service Details
+                    Select Service
                   </label>
                   <select
                     name="serviceId"
                     value={formData.serviceId}
                     onChange={handleChange}
                     required
-                    className="w-full h-10 px-3 rounded-xl border border-purple-200 focus:border-purple-500 focus:ring-purple-500 bg-white"
+                    className="w-full h-12 px-4 rounded-xl border border-purple-200 focus:border-purple-500 focus:ring-purple-500 bg-white text-gray-900"
                   >
-                    <option value="602">602 - Reel Views (Supportive)</option>
-                    <option value="670">670 - Comments (Supportive)</option>
-                    <option value="3924">3924 - Likes (IND SMM)</option>
-                    <option value="3822">3822 - Followers (IND SMM)</option>
-                    <option value="554">554 - Likes (Supportive - Old)</option>
-                    <option value="12560">12560 - Followers (TNT - Old)</option>
+                    {SERVICES.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.panel}) - #{s.id}
+                      </option>
+                    ))}
                   </select>
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Package className="w-4 h-4 text-purple-500" />
+                    Quantity
+                  </label>
+                  <Input
+                    name="quantity"
+                    type="number"
+                    placeholder="Enter quantity"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    className="h-12 rounded-xl border-purple-200 focus:border-purple-500 focus:ring-purple-500"
+                  />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedService.presets.map((qty) => (
+                      <button
+                        key={qty}
+                        type="button"
+                        onClick={() => handlePresetClick(qty)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                          formData.quantity === qty.toString()
+                            ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-100'
+                        }`}
+                      >
+                        {qty >= 1000 ? `${qty / 1000}K` : qty}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                   <LinkIcon className="w-4 h-4 text-purple-500" />
-                  Instagram Link
+                  Target URL / Link
                 </label>
                 <Input
                   name="link"
                   type="text"
-                  placeholder="Paste the link or username here..."
+                  placeholder="Paste profile, post, or video link here..."
                   value={formData.link}
                   onChange={handleChange}
-                  className="rounded-xl border-purple-200 focus:border-purple-500 focus:ring-purple-500"
+                  className="h-12 rounded-xl border-purple-200 focus:border-purple-500 focus:ring-purple-500"
                 />
               </div>
-
-
 
               <Button
                 type="submit"
                 disabled={createOrderMutation.isPending}
-                className="w-full rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white py-6 text-lg font-semibold shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-[1.02]"
+                className="w-full h-14 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-lg font-semibold shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-[1.01]"
               >
                 {createOrderMutation.isPending ? (
                   <>
@@ -124,7 +189,7 @@ export default function ManualOrderPage() {
                 ) : (
                   <>
                     <Send className="w-5 h-5 mr-2" />
-                    Create Order
+                    Place Manual Order
                   </>
                 )}
               </Button>
@@ -132,50 +197,46 @@ export default function ManualOrderPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-1">
-          <div className="bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl shadow-xl shadow-pink-500/25 p-6 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <Instagram className="w-5 h-5" />
-              </div>
-              <h3 className="text-lg font-bold">Order Tips</h3>
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl shadow-xl shadow-indigo-500/25 p-6 text-white text-sm">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Hash className="w-5 h-5" />
+              Service IDs Summary
+            </h3>
+            <div className="space-y-3">
+              {SERVICES.map(s => (
+                <div key={s.id} className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 flex justify-between items-center border border-white/10">
+                  <div>
+                    <p className="font-bold">{s.name}</p>
+                    <p className="text-xs text-white/70">{s.panel}</p>
+                  </div>
+                  <span className="font-mono bg-white/20 px-2 py-1 rounded text-xs">#{s.id}</span>
+                </div>
+              ))}
             </div>
-            <ul className="space-y-3 text-sm text-white/90">
-              <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs shrink-0 mt-0.5">1</span>
-                <span>Make sure the Instagram link is public and accessible</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
-                <span>Service IDs: 602 (Reel Views), 554 (Likes), 12560 (Followers)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs shrink-0 mt-0.5">3</span>
-                <span>Orders typically start processing within minutes</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs shrink-0 mt-0.5">4</span>
-                <span>Use remarks for special delivery instructions</span>
-              </li>
-            </ul>
           </div>
 
-          <div className="mt-6 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-xl shadow-orange-500/25 p-6 text-white">
-            <h3 className="text-lg font-bold mb-3">Service IDs</h3>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between bg-white/20 rounded-xl px-4 py-3">
-                <span className="font-medium">#602 - Reel Views</span>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-lg">Supportive</span>
-              </div>
-              <div className="flex items-center justify-between bg-white/20 rounded-xl px-4 py-3">
-                <span className="font-medium">#554 - Likes</span>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-lg">Supportive</span>
-              </div>
-              <div className="flex items-center justify-between bg-white/20 rounded-xl px-4 py-3">
-                <span className="font-medium">#12560 - Followers</span>
-                <span className="text-sm bg-white/20 px-2 py-1 rounded-lg">TNT</span>
-              </div>
-            </div>
+          <div className="bg-white rounded-2xl border border-amber-100 shadow-xl shadow-amber-500/5 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-amber-600" />
+                </div>
+                Important Notes
+            </h3>
+            <ul className="space-y-3 text-sm text-gray-600">
+              <li className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                <span>Manual orders created here bypass payment verification.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                <span>Ensure the link is public and follows platform rules.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                <span>Orders are sent directly to the SMM panel provider.</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>

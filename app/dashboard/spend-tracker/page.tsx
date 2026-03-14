@@ -22,8 +22,8 @@ const categoryConfig: Record<SpendCategory, { label: string; icon: typeof Wallet
     gradient: 'from-violet-500 to-purple-600',
     bgLight: 'bg-violet-100 text-violet-700',
   },
-  tnt: {
-    label: 'TNT',
+  ind_smm: {
+    label: 'Indian Supportive SMM',
     icon: Package,
     gradient: 'from-amber-400 to-orange-500',
     bgLight: 'bg-amber-100 text-amber-700',
@@ -82,7 +82,7 @@ export default function SpendTrackerPage() {
   const calculateTotals = (spends: Spend[]) => {
     const totals: Record<SpendCategory, number> = {
       supportive_smm: 0,
-      tnt: 0,
+      ind_smm: 0,
       ads: 0,
     }
     spends.forEach((spend) => {

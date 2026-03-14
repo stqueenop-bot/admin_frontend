@@ -6,6 +6,7 @@ import { Instagram, Mail, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
@@ -17,17 +18,22 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate email-only registration/login
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    if (email.trim().toLowerCase() !== 'admin@socialboost.com' && email.trim().toLowerCase() !== 'admin123') {
-      toast.error('Invalid admin credentials')
+    try {
+      const response = await api.login(email.trim())
+      
+      if (response.success) {
+        toast.success(response.message || 'Login successful! Welcome back.')
+        // Store email in local storage for simple session persistence if needed
+        localStorage.setItem('admin_email', response.data?.email || '')
+        router.push('/dashboard')
+      } else {
+        toast.error(response.message || 'Access denied.')
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to login. Please check your credentials.')
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    toast.success('Login successful! Welcome to SMM Panel.')
-    router.push('/dashboard')
   }
 
   return (

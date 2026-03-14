@@ -68,7 +68,7 @@ export const mockSpends: Spend[] = [
   },
   {
     id: 'spd-002',
-    category: 'tnt',
+    category: 'ind_smm',
     amount: 200.00,
     note: 'Bulk credits',
     date: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
@@ -98,9 +98,9 @@ export const mockApis: ApiConfig[] = [
   },
   {
     id: 'api-002',
-    name: 'TNT Panel API',
-    type: 'tnt',
-    url: 'https://api.tntpanel.com/v2',
+    name: 'Indian Supportive SMM API',
+    type: 'ind_smm',
+    url: 'https://indianprovider.com/api/v2',
     apiKey: 'tk_live_yyyyy',
     isActive: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
