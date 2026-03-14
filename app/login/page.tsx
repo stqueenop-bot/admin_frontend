@@ -23,8 +23,10 @@ export default function LoginPage() {
       
       if (response.success) {
         toast.success(response.message || 'Login successful! Welcome back.')
-        // Store email in local storage for simple session persistence if needed
+        // Store email in local storage for simple session persistence
         localStorage.setItem('admin_email', response.data?.email || '')
+        // Set cookie for middleware access (7 days)
+        document.cookie = `admin_session=${response.data?.email || 'true'}; path=/; max-age=${7 * 24 * 60 * 60}`
         router.push('/dashboard')
       } else {
         toast.error(response.message || 'Access denied.')
