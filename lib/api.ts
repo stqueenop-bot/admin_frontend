@@ -5,6 +5,9 @@
 
 const BASE = '/api';
 
+// Admin API key — must match API_AUTH_KEY in backend .env
+const API_KEY = process.env.NEXT_PUBLIC_API_AUTH_KEY || 'admin_secret_8a2f4c9b7e1d3f6a';
+
 interface ApiResponse<T = unknown> {
     success: boolean;
     message: string;
@@ -14,7 +17,11 @@ interface ApiResponse<T = unknown> {
 
 async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
     const res = await fetch(`${BASE}${path}`, {
-        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+            ...options?.headers,
+        },
         ...options,
     });
     const json = await res.json();
