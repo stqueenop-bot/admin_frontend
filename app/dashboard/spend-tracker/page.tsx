@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { Wallet, Plus, TrendingUp, Package, Megaphone, X, CalendarIcon } from 'lucide-react'
+import { Wallet, Plus, TrendingUp, Package, Megaphone, X, CalendarIcon, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -34,12 +34,18 @@ const categoryConfig: Record<SpendCategory, { label: string; icon: typeof Wallet
     gradient: 'from-pink-500 to-rose-500',
     bgLight: 'bg-pink-100 text-pink-700',
   },
+  others: {
+    label: 'Others',
+    icon: MoreHorizontal,
+    gradient: 'from-gray-500 to-gray-600',
+    bgLight: 'bg-gray-100 text-gray-700',
+  },
 }
 
 export default function SpendTrackerPage() {
   const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [formData, setFormData] = useState({
     category: 'supportive_smm' as SpendCategory,
     amount: '',
@@ -84,6 +90,7 @@ export default function SpendTrackerPage() {
       supportive_smm: 0,
       ind_smm: 0,
       ads: 0,
+      others: 0,
     }
     spends.forEach((spend) => {
       if (totals[spend.category as SpendCategory] !== undefined) {

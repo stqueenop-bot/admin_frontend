@@ -30,7 +30,7 @@ export interface Payment {
 }
 
 // Spend Tracker Types
-export type SpendCategory = 'supportive_smm' | 'ind_smm' | 'ads'
+export type SpendCategory = 'supportive_smm' | 'ind_smm' | 'ads'| 'others'
 
 export interface Spend {
   id: string
