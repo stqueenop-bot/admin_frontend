@@ -57,7 +57,7 @@ export default function SpendTrackerPage() {
     queryKey: ['spends'],
     queryFn: () => api.getSpends(),
   })
-
+  console.log('Fetched spends:', spendsResponse) // Debug log to check API response
   const spends = (spendsResponse?.data || []) as Spend[]
 
   const addSpendMutation = useMutation({
