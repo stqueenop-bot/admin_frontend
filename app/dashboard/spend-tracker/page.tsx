@@ -62,12 +62,15 @@ export default function SpendTrackerPage() {
 
   const addSpendMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return api.createSpend({
+      console.log(data);
+      const response = await api.createSpend({
         category: data.category,
         amount: parseFloat(data.amount),
         note: data.note || undefined,
         date: data.date,
       })
+      console.log('Add spend response:', response) // Debug log to check API response
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['spends'] })
