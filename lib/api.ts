@@ -72,11 +72,13 @@ export const api = {
         return request<unknown[]>(`/spends${params}`);
     },
 
-    createSpend: (data: { category: string; amount: number; note?: string; date: string }) =>
-        request('/spends', {
+    createSpend: (data: { category: string; amount: number; note?: string; date: string }) =>{
+        console.log('Creating spend with data:', data); // Debug log to check input data
+        return request('/spends', {
             method: 'POST',
             body: JSON.stringify(data),
-        }),
+        });
+    },
 
     // ── Banners ──
     getBanners: () => request<unknown[]>('/banners'),
