@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server'
-
 export function middleware(request: NextRequest) {
   const session = request.cookies.get('admin_session')
   const { pathname } = request.nextUrl
