@@ -297,7 +297,7 @@ export default function SpendTrackerPage() {
                         <span className="text-sm text-gray-600">{spend.note || '-'}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {format(new Date(spend.date), 'MMM d, yyyy')}
+                        {format(new Date(spend.createdAt), 'MMM d, yyyy, hh:mm a')}
                       </td>
                     </tr>
                   )
