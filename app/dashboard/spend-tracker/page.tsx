@@ -57,7 +57,6 @@ export default function SpendTrackerPage() {
     queryKey: ['spends'],
     queryFn: () => api.getSpends(),
   })
-  console.log('Fetched spends:', spendsResponse) // Debug log to check API response
   const spends = (spendsResponse?.data || []) as Spend[]
 
   const addSpendMutation = useMutation({
@@ -150,7 +149,7 @@ export default function SpendTrackerPage() {
             return (
               <div
                 key={key}
-                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${config.gradient} p-6 text-white shadow-xl`}
+                className={`relative overflow-hidden rounded-2xl bg-gradientnp-to-br ${config.gradient} p-6 text-white shadow-xl`}
               >
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full bg-white/10 blur-2xl" />
                 <div className="relative">
@@ -297,7 +296,7 @@ export default function SpendTrackerPage() {
                         <span className="text-sm text-gray-600">{spend.note || '-'}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {format(new Date(spend.createdAt), 'MMM d, yyyy, hh:mm a')}
+                        {format(new Date(spend.date), 'MMM d, yyyy, hh:mm a')}
                       </td>
                     </tr>
                   )
