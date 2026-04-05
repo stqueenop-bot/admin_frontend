@@ -14,6 +14,14 @@ import { api } from '@/lib/api'
 import type { Spend, SpendCategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 const categoryConfig: Record<SpendCategory, { label: string; icon: typeof Wallet; gradient: string; bgLight: string }> = {
   supportive_smm: {
@@ -149,7 +157,7 @@ export default function SpendTrackerPage() {
             return (
               <div
                 key={key}
-                className={`relative overflow-hidden rounded-2xl bg-gradientnp-to-br ${config.gradient} p-6 text-white shadow-xl`}
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${config.gradient} p-6 text-white shadow-xl`}
               >
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full bg-white/10 blur-2xl" />
                 <div className="relative">
