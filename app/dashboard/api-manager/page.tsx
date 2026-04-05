@@ -1,4 +1,4 @@
-'use client'
+'use client' 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Settings, Plus, Edit2, Trash2, X, Check, Link, Key, Globe } from 'lucide-react'
