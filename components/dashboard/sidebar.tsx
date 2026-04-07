@@ -10,7 +10,7 @@ import {
   Wallet,
   Settings,
   Bot,
-  Instagram,
+  Shield,
   LogOut,
   Menu,
   X,
@@ -62,7 +62,7 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_email')
+    sessionStorage.removeItem('admin_auth')
     router.push('/login')
   }
 
@@ -94,11 +94,11 @@ export function Sidebar() {
         {/* Logo */}
         <div className="p-6 flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <Instagram className="w-7 h-7 text-white" />
+            <Shield className="w-7 h-7 text-white" />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-pink-300 to-violet-300 bg-clip-text text-transparent">
-              SMM Panel
+              Fastxera
             </h1>
             <p className="text-xs text-purple-300">Admin Dashboard</p>
           </div>

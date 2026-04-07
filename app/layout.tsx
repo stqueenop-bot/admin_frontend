@@ -1,16 +1,11 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: 'SMM Panel - Instagram Admin Dashboard',
-  description: 'Manage your Instagram SMM orders, track spending, and configure APIs with this powerful admin dashboard',
-  generator: 'v0.app',
+  title: 'Fastxera Admin Dashboard',
+  description: 'Manage your SMM orders, track spending, and configure APIs with the powerful Fastxera admin dashboard',
   icons: {
     icon: [
       {
