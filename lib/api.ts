@@ -4,7 +4,6 @@
  */
 
 const BASE = '/api';
-
 // Admin API key — must match API_AUTH_KEY in backend .env
 const API_KEY = process.env.NEXT_PUBLIC_API_AUTH_KEY || 'admin_secret_8a2f4c9b7e1d3f6a';
 
