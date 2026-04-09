@@ -54,6 +54,12 @@ const navItems = [
     icon: Bot,
     gradient: 'from-indigo-400 to-violet-500',
   },
+  {
+    label: 'Banners',
+    href: '/dashboard/banners',
+    icon: FileText, // I'll use FileText or similar, let's check lucide-react icons in the file
+    gradient: 'from-orange-400 to-rose-500',
+  },
 ]
 
 export function Sidebar() {

@@ -72,7 +72,7 @@ export const api = {
         return request<unknown[]>(`/spends${params}`);
     },
 
-    createSpend: (data: { category: string; amount: number; note?: string; date: string }) =>{
+    createSpend: (data: { category: string; amount: number; note?: string; date: string }) => {
         console.log('Creating spend with data:', data); // Debug log to check input data
         return request('/spends', {
             method: 'POST',
@@ -81,10 +81,21 @@ export const api = {
     },
 
     // ── Banners ──
-    getBanners: () => request<unknown[]>('/banners'),
-    createBanner: (data: unknown) => request('/banners', { method: 'POST', body: JSON.stringify(data) }),
-    updateBanner: (id: string, data: unknown) => request(`/banners/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    deleteBanner: (id: string) => request(`/banners/${id}`, { method: 'DELETE' }),
+    getBanners: () => request<any[]>('/internal/banners'),
+    createBanner: (data: { imageUrl: string; active?: boolean }) =>
+        request('/internal/banners', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+    updateBanner: (id: string, data: { imageUrl?: string; active?: boolean }) =>
+        request(`/internal/banners/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data)
+        }),
+    deleteBanner: (id: string) =>
+        request(`/internal/banners/${id}`, {
+            method: 'DELETE',
+        }),
 
     // ── SSM ──
     ssmServices: (panel?: string) => request<unknown[]>(`/ssm/services?panel=${panel || 'SUPPORTIVE_SMM'}`),
