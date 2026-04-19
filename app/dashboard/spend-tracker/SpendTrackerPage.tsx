@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { Wallet, Plus, TrendingUp, Package, Megaphone, X, CalendarIcon, MoreHorizontal } from 'lucide-react'
+import { Wallet, Plus, TrendingUp, Package, Megaphone, X, CalendarIcon, MoreHorizontal, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -86,6 +86,25 @@ export default function SpendTrackerPage() {
       toast.error(err.message || 'Failed to add spend.')
     },
   })
+
+  const deleteSpendMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await api.deleteSpend(id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['spends'] })
+      toast.success('Spend deleted successfully!')
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to delete spend.')
+    },
+  })
+
+  const handleDeleteSpend = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this spend record?')) {
+      deleteSpendMutation.mutate(id)
+    }
+  }
 
   const calculateTotals = (spends: Spend[]) => {
     const totals: Record<SpendCategory, number> = {
@@ -274,6 +293,7 @@ export default function SpendTrackerPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-purple-900 uppercase tracking-wider">Amount</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-purple-900 uppercase tracking-wider">Note</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-purple-900 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-purple-900 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-purple-100/50">
@@ -297,6 +317,16 @@ export default function SpendTrackerPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {format(new Date(spend.date), 'MMM d, yyyy, hh:mm a')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteSpend(spend.id)}
+                          className="h-8 w-8 p-0 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </td>
                     </tr>
                   )

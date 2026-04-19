@@ -1,4 +1,4 @@
-'use client'  
+'use client'
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@/components/ui/spinner'
-import { mockApis } from '@/lib/mock-data'
 import type { ApiConfig, ApiType } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
 const apiTypeConfig: Record<ApiType, { label: string; gradient: string; bgLight: string }> = {
@@ -45,46 +45,55 @@ export default function ApiManagerPage() {
     isActive: true,
   })
 
-  const { data: apis, isLoading } = useQuery({
+  // Fetch real APIs
+  const { data: configs, isLoading } = useQuery({
     queryKey: ['apis'],
     queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      return mockApis
+      const response = await api.getSmmConfigs()
+      return response.data || []
     },
   })
 
   const saveApiMutation = useMutation({
     mutationFn: async (data: ApiFormData & { id?: string }) => {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      return data
+      if (data.id) {
+        return await api.updateSmmConfig(data.id, data)
+      } else {
+        return await api.createSmmConfig(data)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apis'] })
       closeModal()
       toast.success(editingApi ? 'API updated successfully!' : 'API added successfully!')
     },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to save API config.')
+    }
   })
 
   const deleteApiMutation = useMutation({
     mutationFn: async (id: string) => {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      return id
+      return await api.deleteSmmConfig(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apis'] })
       toast.success('API deleted successfully!')
     },
+    onError: (err: any) => {
+        toast.error(err.message || 'Failed to delete API.')
+    }
   })
 
-  const openModal = (api?: ApiConfig) => {
-    if (api) {
-      setEditingApi(api)
+  const openModal = (config?: ApiConfig) => {
+    if (config) {
+      setEditingApi(config)
       setFormData({
-        name: api.name,
-        type: api.type,
-        url: api.url,
-        apiKey: api.apiKey,
-        isActive: api.isActive,
+        name: config.name,
+        type: config.type,
+        url: config.url,
+        apiKey: config.apiKey,
+        isActive: config.isActive,
       })
     } else {
       setEditingApi(null)
@@ -138,24 +147,24 @@ export default function ApiManagerPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {apis?.map((api) => {
-            const config = apiTypeConfig[api.type]
+          {(configs || [])?.map((config: ApiConfig) => {
+            const apiConfig = apiTypeConfig[config.type] || apiTypeConfig.supportive_smm
             return (
               <div
-                key={api.id}
+                key={config.id}
                 className="bg-white rounded-2xl shadow-xl shadow-purple-500/5 border border-purple-100/50 overflow-hidden"
               >
-                <div className={`h-2 bg-gradient-to-r ${config.gradient}`} />
+                <div className={`h-2 bg-gradient-to-r ${apiConfig.gradient}`} />
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${config.gradient} flex items-center justify-center`}>
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${apiConfig.gradient} flex items-center justify-center`}>
                         <Settings className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900">{api.name}</h3>
-                        <span className={cn('inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium mt-1', config.bgLight)}>
-                          {config.label}
+                        <h3 className="font-bold text-gray-900">{config.name}</h3>
+                        <span className={cn('inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium mt-1', apiConfig.bgLight)}>
+                          {apiConfig.label}
                         </span>
                       </div>
                     </div>
@@ -163,7 +172,7 @@ export default function ApiManagerPage() {
                       <span
                         className={cn(
                           'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold',
-                          api.isActive
+                          config.isActive
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-gray-100 text-gray-600'
                         )}
@@ -171,10 +180,10 @@ export default function ApiManagerPage() {
                         <span
                           className={cn(
                             'w-1.5 h-1.5 rounded-full',
-                            api.isActive ? 'bg-emerald-500' : 'bg-gray-400'
+                            config.isActive ? 'bg-emerald-500' : 'bg-gray-400'
                           )}
                         />
-                        {api.isActive ? 'Active' : 'Inactive'}
+                        {config.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                   </div>
@@ -182,12 +191,12 @@ export default function ApiManagerPage() {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3 text-sm">
                       <Globe className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600 truncate">{api.url}</span>
+                      <span className="text-gray-600 truncate">{config.url}</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Key className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600 font-mono">
-                        {api.apiKey.slice(0, 10)}...{api.apiKey.slice(-4)}
+                      <span className="text-gray-600 font-mono break-all">
+                        {config.apiKey}
                       </span>
                     </div>
                   </div>
@@ -196,7 +205,7 @@ export default function ApiManagerPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => openModal(api)}
+                      onClick={() => openModal(config)}
                       className="flex-1 rounded-lg"
                     >
                       <Edit2 className="w-4 h-4 mr-2" />
@@ -205,7 +214,11 @@ export default function ApiManagerPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deleteApiMutation.mutate(api.id)}
+                      onClick={() => {
+                        if (confirm('Delete this API configuration?')) {
+                            deleteApiMutation.mutate(config.id)
+                        }
+                      }}
                       className="rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -308,7 +321,7 @@ export default function ApiManagerPage() {
                 <div className="relative">
                   <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    type="password"
+                    type="text"
                     placeholder="sk_live_xxxxx"
                     value={formData.apiKey}
                     onChange={(e) => setFormData((prev) => ({ ...prev, apiKey: e.target.value }))}

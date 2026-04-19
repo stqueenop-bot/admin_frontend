@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const session = request.cookies.get('admin_session')
+  const role = request.cookies.get('admin_role')?.value
   const { pathname } = request.nextUrl
 
   // Define paths that don't require authentication
@@ -13,9 +14,14 @@ export function middleware(request: NextRequest) {
   }
 
   // 2. If trying to access protected pages without session, redirect to login
-  // We except the login page itself and static files
   if (!session && !isLoginPage && !isPublicFile && pathname !== '/') {
     return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // 3. Role-based access control
+  const adminOnlyPaths = ['/dashboard/banners', '/dashboard/access-control', '/dashboard/api-manager']
+  if (adminOnlyPaths.some(path => pathname.startsWith(path)) && role?.toUpperCase() !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return NextResponse.next()

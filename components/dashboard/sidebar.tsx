@@ -14,8 +14,9 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const navItems = [
   {
@@ -47,6 +48,7 @@ const navItems = [
     href: '/dashboard/api-manager',
     icon: Settings,
     gradient: 'from-blue-400 to-cyan-500',
+    adminOnly: true,
   },
   {
     label: 'Telegram Bots',
@@ -57,8 +59,16 @@ const navItems = [
   {
     label: 'Banners',
     href: '/dashboard/banners',
-    icon: FileText, // I'll use FileText or similar, let's check lucide-react icons in the file
+    icon: FileText,
     gradient: 'from-orange-400 to-rose-500',
+    adminOnly: true,
+  },
+  {
+    label: 'Access Control',
+    href: '/dashboard/access-control',
+    icon: Users,
+    gradient: 'from-teal-400 to-emerald-500',
+    adminOnly: true,
   },
 ]
 
@@ -66,11 +76,29 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const [role, setRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Get role from localStorage or cookie
+    const savedRole = localStorage.getItem('admin_role')
+    setRole(savedRole)
+  }, [])
 
   const handleLogout = () => {
-    sessionStorage.removeItem('admin_auth')
-    router.push('/login')
+    // Clear storage
+    localStorage.removeItem('admin_email');
+    localStorage.removeItem('admin_role');
+    sessionStorage.removeItem('admin_auth');
+
+    // Clear cookies
+    document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'admin_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
+    router.push('/login');
   }
+
+  const filteredItems = navItems.filter(item => !item.adminOnly || role?.toUpperCase() === 'ADMIN')
 
   return (
     <>
@@ -112,7 +140,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2">
-          {navItems.map((item) => {
+          {filteredItems.map((item) => {
             const isActive = pathname === item.href
             return (
               <Link

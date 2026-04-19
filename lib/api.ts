@@ -32,10 +32,36 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
 
 export const api = {
     // ── Auth ──
-    login: (email: string) =>
-        request<{ email: string; id: string }>('/auth/login', {
+    login: (email: string, password?: string) =>
+        request<{ token: string; user: { email: string; id: string; role: string; name?: string } }>('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password }),
+        }),
+    forgotPassword: (email: string) =>
+        request('/auth/forgot-password', {
             method: 'POST',
             body: JSON.stringify({ email }),
+        }),
+    getAdmins: () =>
+        request<any[]>('/auth/admins'),
+    createAdmin: (data: any) =>
+        request('/auth/admins', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+    updateAdmin: (id: string, data: any) =>
+        request(`/auth/admins/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        }),
+    deleteAdmin: (id: string) =>
+        request(`/auth/admins/${id}`, {
+            method: 'DELETE',
+        }),
+    resetPassword: (adminId: string, newPassword: string) =>
+        request('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ adminId, newPassword }),
         }),
 
     // ── Dashboard ──
@@ -79,6 +105,11 @@ export const api = {
         });
     },
 
+    deleteSpend: (id: string) =>
+        request(`/spends/${id}`, {
+            method: 'DELETE',
+        }),
+
     // ── Banners ──
     getBanners: () => request<any[]>('/internal/banners'),
     createBanner: (data: { imageUrl: string; active?: boolean }) =>
@@ -92,9 +123,26 @@ export const api = {
             body: JSON.stringify(data)
         }),
     deleteBanner: (id: string) =>
-        request(`/internal/banners/${id}`, {
-            method: 'DELETE',
+        request(`/internal/banners/${id}`, { method: 'DELETE' }),
+
+    // SMM Config Management
+    getSmmConfigs: () =>
+        request('/internal/smm-configs'),
+    
+    createSmmConfig: (data: any) =>
+        request('/internal/smm-configs', {
+            method: 'POST',
+            body: JSON.stringify(data),
         }),
+    
+    updateSmmConfig: (id: string, data: any) =>
+        request(`/internal/smm-configs/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        }),
+    
+    deleteSmmConfig: (id: string) =>
+        request(`/internal/smm-configs/${id}`, { method: 'DELETE' }),
 
     // ── SSM ──
     ssmServices: (panel?: string) => request<unknown[]>(`/ssm/services?panel=${panel || 'SUPPORTIVE_SMM'}`),

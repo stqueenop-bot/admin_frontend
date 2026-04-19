@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Instagram, Mail, ArrowRight } from 'lucide-react'
+import { Instagram, Mail, Lock, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
@@ -13,20 +14,29 @@ export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const response = await api.login(email.trim())
+      const response = await api.login(email.trim(), password)
       
       if (response.success) {
         toast.success(response.message || 'Login successful! Welcome back.')
-        // Store email in local storage for simple session persistence
-        localStorage.setItem('admin_email', response.data?.email || '')
-        // Set cookie for middleware access (7 days)
-        document.cookie = `admin_session=${response.data?.email || 'true'}; path=/; max-age=${7 * 24 * 60 * 60}`
+        const { token, user } = response.data!
+        
+        // Store session data
+        localStorage.setItem('admin_email', user.email)
+        localStorage.setItem('admin_role', user.role)
+        
+        // Set cookies (readable by middleware) - 7 days
+        const maxAge = 7 * 24 * 60 * 60
+        document.cookie = `admin_token=${token}; path=/; max-age=${maxAge}`
+        document.cookie = `admin_role=${user.role}; path=/; max-age=${maxAge}`
+        document.cookie = `admin_session=${user.email}; path=/; max-age=${maxAge}`
+
         router.push('/dashboard')
       } else {
         toast.error(response.message || 'Access denied.')
@@ -59,7 +69,7 @@ export default function LoginPage() {
           {/* Welcome Text */}
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Get Started</h2>
-            <p className="text-gray-500 mt-2">Enter your email to register and access your account</p>
+            <p className="text-gray-500 mt-2">Enter your credentials to access the admin portal</p>
           </div>
 
           {/* Form */}
@@ -71,9 +81,25 @@ export default function LoginPage() {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="admin@example.com or Admin ID"
+                  placeholder="admin@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-14 rounded-xl border-gray-200 pl-12 text-base focus:border-purple-500 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   className="h-14 rounded-xl border-gray-200 pl-12 text-base focus:border-purple-500 focus:ring-purple-500"
                 />
@@ -89,7 +115,7 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Spinner className="w-5 h-5 mr-2" />
-                  Registering...
+                  Logging in...
                 </>
               ) : (
                 <>
