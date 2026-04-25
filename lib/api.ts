@@ -97,13 +97,11 @@ export const api = {
         return request<unknown[]>(`/spends${params}`);
     },
 
-    createSpend: (data: { category: string; amount: number; note?: string; date: string }) => {
-        console.log('Creating spend with data:', data); // Debug log to check input data
-        return request('/spends', {
+    createSpend: (data: { category: string; amount: number; note?: string; date: string }) =>
+        request('/spends', {
             method: 'POST',
             body: JSON.stringify(data),
-        });
-    },
+        }),
 
     deleteSpend: (id: string) =>
         request(`/spends/${id}`, {
@@ -124,6 +122,32 @@ export const api = {
         }),
     deleteBanner: (id: string) =>
         request(`/internal/banners/${id}`, { method: 'DELETE' }),
+
+    // ── Offers ──
+    getOffers: () => request<any[]>('/internal/offers'),
+    createOffer: (data: { 
+        serviceSlug: string; 
+        title: string; 
+        badge?: string; 
+        active?: boolean; 
+        description?: string;
+        serviceId?: number;
+        quantity?: number;
+        price?: number;
+    }) =>
+        request('/internal/offers', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        }),
+    updateOffer: (id: string, data: any) =>
+        request(`/internal/offers/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data)
+        }),
+    deleteOffer: (id: string) =>
+        request(`/internal/offers/${id}`, {
+            method: 'DELETE',
+        }),
 
     // SMM Config Management
     getSmmConfigs: () =>

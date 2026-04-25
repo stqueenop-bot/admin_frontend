@@ -64,6 +64,13 @@ const navItems = [
     adminOnly: true,
   },
   {
+    label: 'Special Offers',
+    href: '/dashboard/special-offers',
+    icon: Zap,
+    gradient: 'from-yellow-400 to-orange-500',
+    adminOnly: true,
+  },
+  {
     label: 'Access Control',
     href: '/dashboard/access-control',
     icon: Users,
