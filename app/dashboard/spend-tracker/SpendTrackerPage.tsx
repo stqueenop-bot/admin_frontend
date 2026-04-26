@@ -23,7 +23,7 @@ const categoryConfig: Record<SpendCategory, { label: string; icon: typeof Wallet
     bgLight: 'bg-violet-100 text-violet-700',
   },
   ind_smm: {
-    label: 'Indian Supportive SMM',
+    label: 'TNT SMM',
     icon: Package,
     gradient: 'from-amber-400 to-orange-500',
     bgLight: 'bg-amber-100 text-amber-700',

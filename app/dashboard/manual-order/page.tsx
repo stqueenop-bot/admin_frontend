@@ -19,9 +19,9 @@ interface ServiceOption {
 
 const SERVICES: ServiceOption[] = [
   { id: '602', name: 'Reel Views', panel: 'Supportive SMM', presets: [5000, 10000, 25000] },
-  { id: '3924', name: 'Likes', panel: 'IND SMM', presets: [1000] },
+  { id: '12587', name: 'Likes', panel: 'TNT SMM', presets: [1000] },
   { id: '670', name: 'Comments', panel: 'Supportive SMM', presets: [100] },
-  { id: '3822', name: 'Followers', panel: 'IND SMM', presets: [50, 100, 200] },
+  { id: '10183', name: 'Followers', panel: 'TNT SMM', presets: [50, 100, 200] },
 ]
 
 export default function ManualOrderPage() {

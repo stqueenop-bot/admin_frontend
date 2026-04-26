@@ -19,7 +19,7 @@ const apiTypeConfig: Record<ApiType, { label: string; gradient: string; bgLight:
     bgLight: 'bg-violet-100 text-violet-700',
   },
   ind_smm: {
-    label: 'Indian Supportive SMM',
+    label: 'TNT SMM',
     gradient: 'from-amber-400 to-orange-500',
     bgLight: 'bg-amber-100 text-amber-700',
   },
