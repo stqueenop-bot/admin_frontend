@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { FileText, Send, Instagram, Hash, Link as LinkIcon, Package, DollarSign, MessageSquare } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { FileText, Send, Instagram, Hash, Link as LinkIcon, Package, DollarSign, MessageSquare, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,25 +17,41 @@ interface ServiceOption {
   presets: number[]
 }
 
-const SERVICES: ServiceOption[] = [
-  { id: '602', name: 'Reel Views', panel: 'Supportive SMM', presets: [5000, 10000, 25000] },
-  { id: '12587', name: 'Likes', panel: 'TNT SMM', presets: [1000] },
-  { id: '670', name: 'Comments', panel: 'Supportive SMM', presets: [100] },
-  { id: '10183', name: 'Followers', panel: 'TNT SMM', presets: [50, 100, 200] },
-]
-
 export default function ManualOrderPage() {
   const queryClient = useQueryClient()
-  const [formData, setFormData] = useState({
-    serviceId: SERVICES[0].id,
-    link: '',
-    quantity: SERVICES[0].presets[0].toString(),
+
+  // Fetch services from API
+  const { data: services, isLoading: isLoadingServices } = useQuery({
+    queryKey: ['service-ids'],
+    queryFn: async () => {
+      const res = await api.getServiceIds()
+      return res.data as ServiceOption[]
+    },
   })
 
-  const selectedService = SERVICES.find(s => s.id === formData.serviceId) || SERVICES[0]
+  const [formData, setFormData] = useState({
+    serviceId: '',
+    link: '',
+    quantity: '',
+  })
+
+  // Initialize form when services load
+  useState(() => {
+    if (services && services.length > 0 && !formData.serviceId) {
+      const first = services[0]
+      setFormData(prev => ({
+        ...prev,
+        serviceId: first.id.toString(),
+        quantity: (first.presets?.[0] || 1000).toString()
+      }))
+    }
+  })
+
+  const selectedService = services?.find(s => s.id.toString() === formData.serviceId) || services?.[0]
 
   const createOrderMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      if (!selectedService) throw new Error('No service selected')
       return api.createOrder({
         serviceId: parseInt(data.serviceId),
         link: data.link,
@@ -74,9 +90,9 @@ export default function ManualOrderPage() {
       const newData = { ...prev, [name]: value }
       // If service changed, reset quantity to its first preset
       if (name === 'serviceId') {
-        const newService = SERVICES.find(s => s.id === value)
+        const newService = services?.find(s => s.id.toString() === value)
         if (newService) {
-          newData.quantity = newService.presets[0].toString()
+          newData.quantity = (newService.presets?.[0] || 1000).toString()
         }
       }
       return newData
@@ -119,13 +135,20 @@ export default function ManualOrderPage() {
                     value={formData.serviceId}
                     onChange={handleChange}
                     required
+                    disabled={isLoadingServices}
                     className="w-full h-12 px-4 rounded-xl border border-purple-200 focus:border-purple-500 focus:ring-purple-500 bg-white text-gray-900"
                   >
-                    {SERVICES.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.panel}) - #{s.id}
-                      </option>
-                    ))}
+                    {isLoadingServices ? (
+                      <option>Loading services...</option>
+                    ) : services && services.length > 0 ? (
+                      services.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.panel}) - #{s.id}
+                        </option>
+                      ))
+                    ) : (
+                      <option>No services found</option>
+                    )}
                   </select>
                 </div>
 
@@ -143,16 +166,15 @@ export default function ManualOrderPage() {
                     className="h-12 rounded-xl border-purple-200 focus:border-purple-500 focus:ring-purple-500"
                   />
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedService.presets.map((qty) => (
+                    {selectedService?.presets?.map((qty) => (
                       <button
                         key={qty}
                         type="button"
                         onClick={() => handlePresetClick(qty)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                          formData.quantity === qty.toString()
-                            ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
-                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-100'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${formData.quantity === qty.toString()
+                          ? 'bg-purple-600 text-white shadow-md shadow-purple-200'
+                          : 'bg-purple-50 text-purple-600 hover:bg-purple-100 border border-purple-100'
+                          }`}
                       >
                         {qty >= 1000 ? `${qty / 1000}K` : qty}
                       </button>
@@ -204,24 +226,33 @@ export default function ManualOrderPage() {
               Service IDs Summary
             </h3>
             <div className="space-y-3">
-              {SERVICES.map(s => (
-                <div key={s.id} className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 flex justify-between items-center border border-white/10">
-                  <div>
-                    <p className="font-bold">{s.name}</p>
-                    <p className="text-xs text-white/70">{s.panel}</p>
-                  </div>
-                  <span className="font-mono bg-white/20 px-2 py-1 rounded text-xs">#{s.id}</span>
+              {isLoadingServices ? (
+                <div className="flex items-center gap-2 text-white/50 animate-pulse">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading summary...</span>
                 </div>
-              ))}
+              ) : services && services.length > 0 ? (
+                services.map(s => (
+                  <div key={s.id} className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 flex justify-between items-center border border-white/10">
+                    <div>
+                      <p className="font-bold text-xs">{s.name}</p>
+                      <p className="text-[10px] text-white/70">{s.panel}</p>
+                    </div>
+                    <span className="font-mono bg-white/20 px-2 py-1 rounded text-[10px]">#{s.id}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-white/50 text-xs">No services found</p>
+              )}
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-amber-100 shadow-xl shadow-amber-500/5 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4 text-amber-600" />
-                </div>
-                Important Notes
+              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-amber-600" />
+              </div>
+              Important Notes
             </h3>
             <ul className="space-y-3 text-sm text-gray-600">
               <li className="flex items-start gap-3">
