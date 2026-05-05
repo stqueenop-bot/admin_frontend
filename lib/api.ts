@@ -168,6 +168,41 @@ export const api = {
     deleteSmmConfig: (id: string) =>
         request(`/internal/smm-configs/${id}`, { method: 'DELETE' }),
 
+    // ── Service IDs (JSON file CRUD) ──
+    getServiceIds: () =>
+        request<any[]>('/internal/service-ids'),
+
+    createServiceId: (data: {
+        id: number;
+        name: string;
+        provider: string;
+        category: string;
+        platform: string;
+        allowedQuantities: number[];
+        description?: string;
+    }) =>
+        request('/internal/service-ids', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    updateServiceId: (numericId: number, data: {
+        id?: number;
+        name?: string;
+        provider?: string;
+        category?: string;
+        platform?: string;
+        allowedQuantities?: number[];
+        description?: string;
+    }) =>
+        request(`/internal/service-ids/${numericId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        }),
+
+    deleteServiceId: (numericId: number) =>
+        request(`/internal/service-ids/${numericId}`, { method: 'DELETE' }),
+
     // ── SSM ──
     ssmServices: (panel?: string) => request<unknown[]>(`/ssm/services?panel=${panel || 'SUPPORTIVE_SMM'}`),
     ssmBalance: (panel?: string) => request(`/ssm/balance?panel=${panel || 'SUPPORTIVE_SMM'}`),

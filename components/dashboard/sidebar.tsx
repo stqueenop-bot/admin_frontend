@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Users,
+  Hash,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -68,6 +69,13 @@ const navItems = [
     href: '/dashboard/special-offers',
     icon: Zap,
     gradient: 'from-yellow-400 to-orange-500',
+    adminOnly: true,
+  },
+  {
+    label: 'Service IDs',
+    href: '/dashboard/service-ids',
+    icon: Hash,
+    gradient: 'from-violet-400 to-purple-500',
     adminOnly: true,
   },
   {
